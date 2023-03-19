@@ -13,6 +13,10 @@ export interface User {
   password?: string,
 }
 
+export interface UserList {
+  users: User[]
+}
+
 /**
  * @param {firestore.Firestore} firestore - firestore instance
  * @param {AuthUserRecord} user - verified user object
@@ -39,7 +43,7 @@ export async function addUserLevelToClaims(firestore: firestore.Firestore, user:
  * @param {CallableContext} context
  * @return {Promise<User>}
  */
-export async function registerUser( firestore: firestore.Firestore, data: User, context: CallableContext): Promise<User> {
+export async function registerUser(firestore: firestore.Firestore, data: User, context: CallableContext): Promise<User> {
   if (context.auth?.token.admin) {
     const user:UserRecord = await auth().createUser({email: data.email, password: data.password});
     await firestore.collection("users").doc(user.uid).set({
@@ -52,6 +56,29 @@ export async function registerUser( firestore: firestore.Firestore, data: User, 
       userLevel: data.userLevel,
       name: data.name,
     };
+  }
+  throw new functions.https.HttpsError("permission-denied", "Admin only access!");
+}
+
+/**
+ * @param {firestore.Firestore} firestore
+ * @param {CallableContext} context
+ * @return {Promise<User>}
+ */
+export async function listUser(firestore: firestore.Firestore, context: CallableContext): Promise<UserList> {
+  if (context.auth?.token.admin) {
+    const userRecords = await auth().listUsers();
+    const userRef = await firestore.collection("users").get();
+    const users = userRecords.users.map((userRecord: UserRecord) => {
+      const user = userRef.docs.find((doc) => doc.id === userRecord.uid)?.data() as User;
+      return {
+        id: userRecord.uid,
+        email: userRecord.email,
+        userLevel: user.userLevel,
+        name: user.name,
+      };
+    });
+    return {users};
   }
   throw new functions.https.HttpsError("permission-denied", "Admin only access!");
 }

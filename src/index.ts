@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import {addUserLevelToClaims, registerUser, User} from "./user-functions/account";
+import {addUserLevelToClaims, registerUser, listUser, User} from "./user-functions/account";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 
@@ -16,5 +16,9 @@ const signUp = functions.https.onCall((data: User, context: CallableContext) => 
   registerUser(firestore, data, context);
 });
 
+const listUsers = functions.https.onCall((_: unknown, context: CallableContext) => {
+  listUser(firestore, context);
+});
 
-export {beforeSignIn, signUp};
+
+export {beforeSignIn, signUp, listUsers};
