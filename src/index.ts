@@ -8,17 +8,13 @@ admin.initializeApp();
 
 const firestore = admin.firestore();
 
-// const signUp = functions.auth.user().onCreate((user: UserRecord) => {
-//   addUserToFireStore(firestore, user);
-// });
-
 const beforeSignIn = functions.auth.user().beforeSignIn((user: AuthUserRecord) => {
   addUserLevelToClaims(firestore, user);
 });
 
-const httpFunctions = functions.https.onCall((data: User, context: CallableContext) => {
+const signUp = functions.https.onCall((data: User, context: CallableContext) => {
   registerUser(firestore, data, context);
 });
 
 
-export {beforeSignIn, httpFunctions};
+export {beforeSignIn, signUp};

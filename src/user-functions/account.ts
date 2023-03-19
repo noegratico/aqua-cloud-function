@@ -13,19 +13,6 @@ export interface User {
   password?: string,
 }
 
-// /**
-//  * Creates a record to owned database
-//  * @param {firestore.Firestore} firestore - firestore instance
-//  * @param {UserRecord} user - user created during signup
-//  */
-// export async function addUserToFireStore(firestore: firestore.Firestore, user: UserRecord) {
-//   const result: WriteResult = await firestore.collection("users").doc(user.uid).set({
-//     isActive: user.emailVerified,
-//     email: user.email,
-//   });
-//   logger.write({message: "User inserted", severity: "INFO", writeTime: result.writeTime.toDate()});
-// }
-
 /**
  * @param {firestore.Firestore} firestore - firestore instance
  * @param {AuthUserRecord} user - verified user object
