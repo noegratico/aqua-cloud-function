@@ -13,11 +13,11 @@ const beforeSignIn = functions.auth.user().beforeSignIn((user: AuthUserRecord) =
 });
 
 const signUp = functions.https.onCall((data: User, context: CallableContext) => {
-  registerUser(firestore, data, context);
+  return registerUser(firestore, data, context);
 });
 
 const listUsers = functions.https.onCall((_: unknown, context: CallableContext) => {
-  listUser(firestore, context);
+  return listUser(firestore, context);
 });
 
 
