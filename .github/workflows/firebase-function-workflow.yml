@@ -1,0 +1,21 @@
+name: firebase-function-workflow
+run-name: ${{ github.actor }} is running the pipeline
+on:
+  push:
+    branches:
+      - main
+env:
+  FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+jobs:
+  firebase_deploy:
+    name: Deploy function
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: npm install -g firebase-tools
+      - run: npm install
+      - run: npm run deploy
+      - run: echo "Job Succeed!"
