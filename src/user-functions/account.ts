@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {firestore, auth} from "firebase-admin";
 import {logger} from "firebase-functions";
 import {UserRecord} from "firebase-admin/auth";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 import * as functions from "firebase-functions";
+import lodash from "lodash";
 
 export interface User {
   id?: string,
@@ -65,7 +67,7 @@ export async function registerUser(firestore: firestore.Firestore, data: User, c
  * @param {CallableContext} context
  * @return {Promise<User>}
  */
-export async function listUser(firestore: firestore.Firestore, context: CallableContext): Promise<UserList> {
+export async function listUsers(firestore: firestore.Firestore, context: CallableContext): Promise<UserList> {
   if (context.auth?.token.admin) {
     const userRecords = await auth().listUsers();
     const userRef = await firestore.collection("users").get();
@@ -81,4 +83,44 @@ export async function listUser(firestore: firestore.Firestore, context: Callable
     return {users};
   }
   throw new functions.https.HttpsError("permission-denied", "Admin only access!");
+}
+
+/**
+ * @param {firestore.Firestore} firestore
+ * @param {User} data
+ * @param {CallableContext} context
+ */
+export async function updateUser(firestore: firestore.Firestore, data: User, context: CallableContext) {
+  validateUserPayload(data);
+  if (context.auth?.token.admin) {
+    const userDetails = {
+      ...data.name != null && {name: data.name},
+      ...data.userLevel != null && {userLevel: data.userLevel},
+    };
+
+    if (!lodash.isEmpty(userDetails)) {
+      const userRef = await firestore.collection("users").doc(data.id!);
+      await userRef.update({});
+    }
+
+    const userCredentials = {
+      ...data.email != null && {email: data.email},
+      ...data.password != null && {password: data.password},
+    };
+
+    if (!lodash.isEmpty(userCredentials)) {
+      await auth().updateUser(data.id!, userCredentials);
+    }
+  }
+  throw new functions.https.HttpsError("permission-denied", "Admin only access!");
+}
+
+/**
+ * @param {User} payload - User payload
+ */
+function validateUserPayload(payload: User): void | never {
+  if (payload.id != null) {
+    return;
+  }
+  throw new functions.https.HttpsError("invalid-argument", "Please pass valid payload!");
 }
