@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import {addUserLevelToClaims, registerUser, listUsers as getUsers, updateUser as changeUserDetials, User} from "./user-functions/account";
+import {addUserLevelToClaims, registerUser, deactivateOrActivateUser, listUsers as getUsers, updateUser as changeUserDetials, User, ActivationAndDeactivationPayload} from "./user-functions/account";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 
@@ -24,5 +24,8 @@ const updateUser = functions.https.onCall((data: User, context: CallableContext)
   changeUserDetials(firestore, data, context);
 });
 
+const activationAndDeactivationOfUser = functions.https.onCall((data: ActivationAndDeactivationPayload, context: CallableContext) => {
+  deactivateOrActivateUser(firestore, data, context);
+});
 
-export {beforeSignIn, signUp, listUsers, updateUser};
+export {beforeSignIn, signUp, listUsers, updateUser, activationAndDeactivationOfUser};

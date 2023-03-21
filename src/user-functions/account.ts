@@ -15,6 +15,11 @@ export interface User {
   password?: string,
 }
 
+export interface ActivationAndDeactivationPayload {
+  id: string,
+  disable: boolean
+}
+
 export interface UserList {
   users: User[]
 }
@@ -78,6 +83,8 @@ export async function listUsers(firestore: firestore.Firestore, context: Callabl
         email: userRecord.email,
         userLevel: user.userLevel,
         name: user.name,
+        isActive: !userRecord.disabled,
+        isEmailVerified: userRecord.emailVerified,
       };
     });
     return {users};
@@ -111,6 +118,18 @@ export async function updateUser(firestore: firestore.Firestore, data: User, con
     if (!lodash.isEmpty(userCredentials)) {
       await auth().updateUser(data.id!, userCredentials);
     }
+  }
+  throw new functions.https.HttpsError("permission-denied", "Admin only access!");
+}
+
+/**
+ * @param {firestore.Firestore} firestore
+ * @param {User} data
+ * @param {CallableContext} context
+ */
+export async function deactivateOrActivateUser(firestore: firestore.Firestore, data: ActivationAndDeactivationPayload, context: CallableContext) {
+  if (context.auth?.token.admin) {
+    await auth().updateUser(data.id, {disabled: data.disable});
   }
   throw new functions.https.HttpsError("permission-denied", "Admin only access!");
 }
