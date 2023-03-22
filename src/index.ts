@@ -20,8 +20,8 @@ const listUsers = functions.https.onCall((_: unknown, context: CallableContext) 
   return getUsers(firestore, context);
 });
 
-const updateUser = functions.https.onCall( async (data: User, context: CallableContext) => {
-  return await changeUserDetials(firestore, data, context);
+const updateUser = functions.https.onCall((data: User, context: CallableContext) => {
+  return changeUserDetials(firestore, data, context);
 });
 
 const activationAndDeactivationOfUser = functions.https.onCall((data: ActivationAndDeactivationPayload, context: CallableContext) => {
