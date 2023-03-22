@@ -107,7 +107,7 @@ export async function updateUser(firestore: firestore.Firestore, data: User, con
 
     if (!lodash.isEmpty(userDetails)) {
       const userRef = await firestore.collection("users").doc(data.id!);
-      await userRef.update({});
+      await userRef.update(userDetails);
     }
 
     const userCredentials = {
