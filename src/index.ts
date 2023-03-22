@@ -25,7 +25,7 @@ const updateUser = functions.https.onCall((data: User, context: CallableContext)
 });
 
 const activationAndDeactivationOfUser = functions.https.onCall((data: ActivationAndDeactivationPayload, context: CallableContext) => {
-  deactivateOrActivateUser(firestore, data, context);
+  return deactivateOrActivateUser(firestore, data, context);
 });
 
 export {beforeSignIn, signUp, listUsers, updateUser, activationAndDeactivationOfUser};
