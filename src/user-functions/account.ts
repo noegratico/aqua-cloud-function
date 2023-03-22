@@ -96,8 +96,9 @@ export async function listUsers(firestore: firestore.Firestore, context: Callabl
  * @param {firestore.Firestore} firestore
  * @param {User} data
  * @param {CallableContext} context
+ * @return {Promise<string>}
  */
-export async function updateUser(firestore: firestore.Firestore, data: User, context: CallableContext) {
+export async function updateUser(firestore: firestore.Firestore, data: User, context: CallableContext): Promise<string> {
   validateUserPayload(data);
   if (context.auth?.token.admin) {
     const userDetails = {
@@ -118,6 +119,7 @@ export async function updateUser(firestore: firestore.Firestore, data: User, con
     if (!lodash.isEmpty(userCredentials)) {
       await auth().updateUser(data.id!, userCredentials);
     }
+    return "Update user completed!";
   }
   throw new functions.https.HttpsError("permission-denied", "Admin only access!");
 }
@@ -130,6 +132,7 @@ export async function updateUser(firestore: firestore.Firestore, data: User, con
 export async function deactivateOrActivateUser(firestore: firestore.Firestore, data: ActivationAndDeactivationPayload, context: CallableContext) {
   if (context.auth?.token.admin) {
     await auth().updateUser(data.id, {disabled: data.disable});
+    return `User ${data.disable ? "Deactivated" : "Activated"}!`;
   }
   throw new functions.https.HttpsError("permission-denied", "Admin only access!");
 }
