@@ -13,6 +13,7 @@ export interface User {
   userLevel: string,
   name: string,
   password?: string,
+  isEmailVerified?: boolean
 }
 
 export interface ActivationAndDeactivationPayload {
@@ -138,6 +139,32 @@ export async function deactivateOrActivateUser(firestore: firestore.Firestore, d
 }
 
 /**
+ * @param {firestore.Firestore} firestore
+ * @param {CallableContext} context
+ * @return {Promise<User>}
+ */
+export function getProfile(firestore: firestore.Firestore, context: CallableContext): Promise<User> {
+  const id = context.auth?.token.uid ? context.auth?.token.uid : "";
+  return getUserInfo(firestore, id);
+}
+
+/**
+ * @param {firestore.Firestore} firestore
+ * @param {User} data
+ * @param {CallableContext} context
+ */
+export async function updateProfile(firestore: firestore.Firestore, data: User, context: CallableContext): Promise<User> {
+  const id = context.auth?.token.uid ? context.auth?.token.uid : "";
+  if (data.email) {
+    await auth().updateUser(id, {email: data.email});
+  }
+  if (data.name) {
+    await firestore.collection("users").doc(id).update({name: data.name});
+  }
+  return getUserInfo(firestore, id);
+}
+
+/**
  * @param {User} payload - User payload
  */
 function validateUserPayload(payload: User): void | never {
@@ -145,4 +172,19 @@ function validateUserPayload(payload: User): void | never {
     return;
   }
   throw new functions.https.HttpsError("invalid-argument", "Please pass valid payload!");
+}
+
+/**
+ * @param {firestore.Firestore} firestore
+ * @param {string} id
+ * @return {Promise<User>}
+ */
+async function getUserInfo(firestore: firestore.Firestore, id: string): Promise<User> {
+  const user = (await firestore.collection("users").doc(id).get()).data() as User;
+  const userRecord = await auth().getUser(id);
+  return {
+    email: userRecord.email,
+    isEmailVerified: userRecord.emailVerified,
+    ...user,
+  };
 }
