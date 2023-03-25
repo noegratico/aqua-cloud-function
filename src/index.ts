@@ -11,6 +11,7 @@ import {
   ActivationAndDeactivationPayload,
   updateProfile,
 } from "./user-functions/account";
+import {getSensorRecentData, getSensorHistoricalData, SensorParameter} from "./sensor-data-functions/sensor";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 
@@ -46,6 +47,14 @@ const updateUserInfo = functions.https.onCall((data: User, context: CallableCont
   return updateProfile(firestore, data, context);
 });
 
+const getSensorData = functions.https.onCall(() => {
+  return getSensorRecentData(firestore);
+});
+
+const getAllSensorData = functions.https.onCall((data: SensorParameter) => {
+  return getSensorHistoricalData(firestore, data);
+});
+
 export {
   beforeSignIn,
   signUp,
@@ -54,4 +63,6 @@ export {
   activationAndDeactivationOfUser,
   getProfile,
   updateUserInfo,
+  getSensorData,
+  getAllSensorData,
 };

@@ -144,7 +144,7 @@ export async function deactivateOrActivateUser(firestore: firestore.Firestore, d
  * @return {Promise<User>}
  */
 export function getProfile(firestore: firestore.Firestore, context: CallableContext): Promise<User> {
-  const id = context.auth?.token.uid ? context.auth?.token.uid : "";
+  const id = context.auth?.uid ? context.auth.uid : "";
   return getUserInfo(firestore, id);
 }
 
@@ -154,7 +154,7 @@ export function getProfile(firestore: firestore.Firestore, context: CallableCont
  * @param {CallableContext} context
  */
 export async function updateProfile(firestore: firestore.Firestore, data: User, context: CallableContext): Promise<User> {
-  const id = context.auth?.token.uid ? context.auth?.token.uid : "";
+  const id = context.auth?.uid ? context.auth.uid : "";
   if (data.email) {
     await auth().updateUser(id, {email: data.email});
   }
