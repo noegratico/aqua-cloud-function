@@ -165,6 +165,15 @@ export async function updateProfile(firestore: firestore.Firestore, data: User, 
 }
 
 /**
+ * @param {unknown} _
+ * @param {CallableContext} context
+ */
+export async function verifyEmail(_: unknown, context: CallableContext) {
+  const userRecord = await auth().getUser(context.auth!.uid);
+  auth().generateEmailVerificationLink(userRecord.email!);
+}
+
+/**
  * @param {User} payload - User payload
  */
 function validateUserPayload(payload: User): void | never {

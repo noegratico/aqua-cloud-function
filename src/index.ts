@@ -10,6 +10,7 @@ import {
   User,
   ActivationAndDeactivationPayload,
   updateProfile,
+  verifyEmail,
 } from "./user-functions/account";
 import {getSensorRecentData, getSensorHistoricalData, SensorParameter} from "./sensor-data-functions/sensor";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
@@ -55,6 +56,8 @@ const getAllSensorData = functions.https.onCall((data: SensorParameter) => {
   return getSensorHistoricalData(firestore, data);
 });
 
+const emailVerification = functions.https.onCall(verifyEmail);
+
 export {
   beforeSignIn,
   signUp,
@@ -65,4 +68,5 @@ export {
   updateUserInfo,
   getSensorData,
   getAllSensorData,
+  emailVerification,
 };
