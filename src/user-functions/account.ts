@@ -156,7 +156,7 @@ export function getProfile(firestore: firestore.Firestore, context: CallableCont
 export async function updateProfile(firestore: firestore.Firestore, data: User, context: CallableContext): Promise<User> {
   const id = context.auth?.uid ? context.auth.uid : "";
   if (data.email) {
-    await auth().updateUser(id, {email: data.email});
+    await auth().updateUser(id, {email: data.email, emailVerified: false});
   }
   if (data.name) {
     await firestore.collection("users").doc(id).update({name: data.name});
