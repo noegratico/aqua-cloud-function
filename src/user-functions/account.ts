@@ -113,7 +113,7 @@ export async function updateUser(firestore: firestore.Firestore, data: User, con
     }
 
     const userCredentials = {
-      ...data.email != null && {email: data.email},
+      ...data.email != null && {email: data.email, emailVerified: false},
       ...data.password != null && {password: data.password},
     };
 
