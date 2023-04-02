@@ -33,7 +33,7 @@ export function addSensorDataToDatabase(firestore: firestore.Firestore, snap: Ch
  */
 export async function getSensorRecentData(firestore: firestore.Firestore) {
   return {
-    acLevel: await findRecentSensorData(firestore, "ac_level"),
+    ecLevel: await findRecentSensorData(firestore, "ec_level"),
     humidity: await findRecentSensorData(firestore, "humidity"),
     lightResistance: await findRecentSensorData(firestore, "light_resistance"),
     phLevel: await findRecentSensorData(firestore, "ph_level"),
