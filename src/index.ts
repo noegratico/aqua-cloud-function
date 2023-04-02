@@ -19,39 +19,41 @@ admin.initializeApp();
 
 const firestore = admin.firestore();
 
-const beforeSignIn = functions.auth.user().beforeSignIn((user: AuthUserRecord) => {
+const myStorageFunction = functions.region("asia-southeast1");
+
+const beforeSignIn = myStorageFunction.auth.user().beforeSignIn((user: AuthUserRecord) => {
   addUserLevelToClaims(firestore, user);
 });
 
-const signUp = functions.https.onCall((data: User, context: CallableContext) => {
+const signUp = myStorageFunction.https.onCall((data: User, context: CallableContext) => {
   return registerUser(firestore, data, context);
 });
 
-const listUsers = functions.https.onCall((_: unknown, context: CallableContext) => {
+const listUsers = myStorageFunction.https.onCall((_: unknown, context: CallableContext) => {
   return getUsers(firestore, context);
 });
 
-const updateUser = functions.https.onCall((data: User, context: CallableContext) => {
+const updateUser = myStorageFunction.https.onCall((data: User, context: CallableContext) => {
   return changeUserDetials(firestore, data, context);
 });
 
-const activationAndDeactivationOfUser = functions.https.onCall((data: ActivationAndDeactivationPayload, context: CallableContext) => {
+const activationAndDeactivationOfUser = myStorageFunction.https.onCall((data: ActivationAndDeactivationPayload, context: CallableContext) => {
   return deactivateOrActivateUser(firestore, data, context);
 });
 
-const getProfile = functions.https.onCall((_: unknown, context: CallableContext) => {
+const getProfile = myStorageFunction.https.onCall((_: unknown, context: CallableContext) => {
   return getInfo(firestore, context);
 });
 
-const updateUserInfo = functions.https.onCall((data: User, context: CallableContext) => {
+const updateUserInfo = myStorageFunction.https.onCall((data: User, context: CallableContext) => {
   return updateProfile(firestore, data, context);
 });
 
-const getSensorData = functions.https.onCall(() => {
+const getSensorData = myStorageFunction.https.onCall(() => {
   return getSensorRecentData(firestore);
 });
 
-const getAllSensorData = functions.https.onCall((data: SensorParameter) => {
+const getAllSensorData = myStorageFunction.https.onCall((data: SensorParameter) => {
   return getSensorHistoricalData(firestore, data);
 });
 
