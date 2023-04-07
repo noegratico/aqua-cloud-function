@@ -3,13 +3,14 @@ import {DataSnapshot} from "firebase-admin/database";
 import {Change, EventContext} from "firebase-functions/v1";
 import {firestore, storage} from "firebase-admin";
 import {FieldValue, WriteResult} from "firebase-admin/firestore";
-import {isEmpty} from "lodash";
+import {isEmpty, startCase} from "lodash";
 import PDFDocument from "pdfkit-table";
 import {createTabularReport} from "../util/pdfUtiliy";
 
 export interface SensorData {
   value: string,
-  datetime: Date
+  datetime: {[key: string]: number}
+  convertedDatetime?: string
 }
 
 export type Table = any;
@@ -89,36 +90,33 @@ async function generateDaily(firestore: firestore.Firestore, storage: storage.St
   }
   Promise.resolve(dates.map(async (value) => {
     // get data from firestore
-    const temperatures = await getSensorDataAsPerDate(firestore, "temperature", value);
-    const ecLevel = await getSensorDataAsPerDate(firestore, "ec_level", value);
-    const humidity = await getSensorDataAsPerDate(firestore, "humidity", value);
-    const lightResistance = await getSensorDataAsPerDate(firestore, "light_resistance", value);
-    const phLevel = await getSensorDataAsPerDate(firestore, "ph_level", value);
-    const waterLevel = await getSensorDataAsPerDate(firestore, "water_level", value);
-    const snapA = await getSensorDataAsPerDate(firestore, "snap_a", value);
-    const snapB = await getSensorDataAsPerDate(firestore, "snap_b", value);
-    const fileName = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
-    const fileRef = storage.bucket("daily-reports").file(fileName + ".pdf");
-    const doc = new PDFDocument();
-    await new Promise<void>((resolve, reject) => {
+    const data = new Map<string, any>();
+    for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
+      const result = (await getSensorDataAsPerDate(firestore, sensor, value)).map((res) => ({
+        ...res,
+        convertedDatetime: toDateTime(res.datetime["_seconds"]),
+      }));
+      if (result.length !== 0) {
+        data.set(sensor, result);
+      }
+    }
+    if (data.size !== 0) {
+      // generate daily report
+      const fileName = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
+      const fileRef = storage.bucket("daily-reports").file(fileName + ".pdf");
+      const doc = new PDFDocument();
       const writeStream = fileRef.createWriteStream({
         resumable: false,
         contentType: "application/pdf",
       });
-      writeStream.on("finish", () => resolve());
-      writeStream.on("error", (e) => reject(e));
       doc.pipe(writeStream);
-      doc.table(createTabularReport(temperatures, "Temperature", `Records of Temperature for the day of ${fileName}`));
-      doc.table(createTabularReport(ecLevel, "EC Level", `Records of EC Level for the day of ${fileName}`));
-      doc.table(createTabularReport(humidity, "Humidity", `Records of Humidity for the day of ${fileName}`));
-      doc.table(createTabularReport(lightResistance, "Light Resistance", `Records of Light Resistance for the day of ${fileName}`));
-      doc.table(createTabularReport(phLevel, "PH Level", `PH Levels for ${fileName}`));
-      doc.table(createTabularReport(waterLevel, "Water Level", `Records of Water Level for the day of ${fileName}`));
-      doc.table(createTabularReport(snapA, "Snap A", `Records of Snap A for the day of ${fileName}`));
-      doc.table(createTabularReport(snapB, "Snap B", `Records of Snap B for the day of ${fileName}`));
+      for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
+        const name = startCase(sensor).replace("_", " ");
+        const value = data.has(sensor) ? data.get(sensor) : [];
+        await doc.table(createTabularReport(value, name, `Records of ${name} for the day of ${fileName}`));
+      }
       doc.end();
-    });
-    // generate daily report
+    }
   })).then(() => {
     // update lastFileUploaded in daily collection
     const fileDate = dates[dates.length - 1];
@@ -190,4 +188,14 @@ async function getSensorDataAsPerDate(firestore: firestore.Firestore, collection
   return (await firestore.collection(collectionName)
     .where("datetime", "<=", new Date(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 23:59:59`))
     .orderBy("datetime", "desc").get()).docs.map((value) => value.data() as SensorData);
+}
+
+/**
+ * @param {number} secs
+ * @return {Date}
+ */
+function toDateTime(secs: number): string {
+  const t = new Date(1970, 0, 1); // Epoch
+  t.setSeconds(secs);
+  return `${t.getFullYear()}-${t.getMonth() + 1}-${t.getDate()} ${t.getHours()}:${t.getMinutes()}:${t.getSeconds()}`;
 }

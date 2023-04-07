@@ -12,7 +12,7 @@ export function createTabularReport(data: SensorData[], title: string, subtitle:
     subtitle,
     headers: [
       {label: "Value", property: "value", width: 60, renderer: null},
-      {label: "Datetime", property: "datetime", width: 150, renderer: null},
+      {label: "Datetime", property: "convertedDatetime", width: 150, renderer: null},
     ],
     datas: data,
   };
