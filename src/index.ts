@@ -11,13 +11,14 @@ import {
   ActivationAndDeactivationPayload,
   updateProfile,
 } from "./user-functions/account";
-import {getSensorRecentData, getSensorHistoricalData, SensorParameter} from "./sensor-data-functions/sensor";
+import {getSensorRecentData, getSensorHistoricalData, SensorParameter, generateReports} from "./sensor-data-functions/sensor";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 
 admin.initializeApp();
 
 const firestore = admin.firestore();
+const storage = admin.storage();
 
 const myStorageFunction = functions.region("asia-southeast1");
 
@@ -57,6 +58,10 @@ const getAllSensorData = myStorageFunction.https.onCall((data: SensorParameter) 
   return getSensorHistoricalData(firestore, data);
 });
 
+const generateAllReports = myStorageFunction.https.onCall(() => {
+  generateReports(firestore, storage);
+});
+
 export {
   beforeSignIn,
   signUp,
@@ -67,4 +72,5 @@ export {
   updateUserInfo,
   getSensorData,
   getAllSensorData,
+  generateAllReports,
 };
