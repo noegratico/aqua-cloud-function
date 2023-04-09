@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {DataSnapshot} from "firebase-admin/database";
-import {Change, EventContext} from "firebase-functions/v1";
+import {Change, EventContext, logger} from "firebase-functions/v1";
 import {firestore, storage} from "firebase-admin";
 import {FieldValue, WriteResult} from "firebase-admin/firestore";
 import {isEmpty, startCase} from "lodash";
@@ -110,6 +110,7 @@ async function generateDaily(firestore: firestore.Firestore, storage: storage.St
         resumable: false,
         contentType: "application/pdf",
       });
+      logger.info(`start generating report for ${fileName}`);
       doc.pipe(writeStream);
       for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
         const name = startCase(sensor).replace("_", " ");
