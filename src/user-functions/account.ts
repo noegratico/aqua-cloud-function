@@ -170,9 +170,11 @@ export async function updateProfile(firestore: firestore.Firestore, data: User, 
  * @param {CallableContext} context
  */
 export async function logActivity(firestore: firestore.Firestore, data: {[key:string]: unknown}, context: CallableContext) {
-  const id = context.auth?.uid ? context.auth.uid : "";
+  const userId = context.auth?.uid ? context.auth.uid : "";
+  const email = context.auth?.token?.email ? context.auth.token.email : "";
   await firestore.collection("user_logs").add({
-    userId: id,
+    userId,
+    email,
     ...data,
   });
 }
