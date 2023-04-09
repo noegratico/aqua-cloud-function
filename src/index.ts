@@ -59,7 +59,7 @@ const getAllSensorData = myStorageFunction.https.onCall((data: SensorParameter) 
 });
 
 const generateAllReports = myStorageFunction.https.onCall(() => {
-  generateReports(firestore, storage);
+  return generateReports(firestore, storage);
 });
 
 export {

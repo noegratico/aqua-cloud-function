@@ -69,9 +69,9 @@ export async function getSensorHistoricalData(firestore: firestore.Firestore, da
  * @param {firestore.Firestore} firestore
  * @param {storage.Storage} storage
  */
-export function generateReports(firestore: firestore.Firestore, storage: storage.Storage) {
+export async function generateReports(firestore: firestore.Firestore, storage: storage.Storage) {
   // generate daily
-  generateDaily(firestore, storage);
+  await generateDaily(firestore, storage);
 }
 
 /**
