@@ -102,8 +102,9 @@ async function generateDaily(firestore: firestore.Firestore, storage: storage.St
     }
     if (data.size !== 0) {
       // generate daily report
+      const folder = "daily-reports/";
       const fileName = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
-      const fileRef = storage.bucket("daily-reports").file(fileName + ".pdf");
+      const fileRef = storage.bucket().file(folder + fileName + ".pdf");
       const doc = new PDFDocument();
       const writeStream = fileRef.createWriteStream({
         resumable: false,
