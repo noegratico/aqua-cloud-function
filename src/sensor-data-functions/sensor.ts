@@ -90,7 +90,7 @@ async function generateDaily(firestore: firestore.Firestore, storage: storage.St
     startDate.setDate(startDate.getDate() + 1);
   }
   logger.info("dates", dates);
-  Promise.resolve(dates.map(async (value) => {
+  await Promise.resolve(dates.map(async (value) => {
     // get data from firestore
     const data = new Map<string, any>();
     for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
