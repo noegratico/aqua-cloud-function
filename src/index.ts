@@ -58,7 +58,9 @@ const getAllSensorData = myStorageFunction.https.onCall((data: SensorParameter) 
   return getSensorHistoricalData(firestore, data);
 });
 
-const generateAllReports = myStorageFunction.https.onCall(() => {
+const generateAllReports = myStorageFunction.runWith({
+  timeoutSeconds: 300,
+}).https.onCall(() => {
   return generateReports(firestore, storage);
 });
 
