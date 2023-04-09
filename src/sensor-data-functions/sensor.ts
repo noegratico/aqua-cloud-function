@@ -79,6 +79,7 @@ export async function generateReports(firestore: firestore.Firestore, storage: s
  * @param {storage.Storage} storage
  */
 async function generateDaily(firestore: firestore.Firestore, storage: storage.Storage) {
+  logger.info("start report generation");
   const lastFileUploaded = ((await firestore.collection("reports").doc("daily").get()).data() as ReportsFields).lastFileUploaded;
   const startDate = (isEmpty(lastFileUploaded) ? getYesterdayDate() : getTommorrowDate(lastFileUploaded));
   const endDate = new Date();
@@ -88,6 +89,7 @@ async function generateDaily(firestore: firestore.Firestore, storage: storage.St
     dates.push(new Date(startDate));
     startDate.setDate(startDate.getDate() + 1);
   }
+  logger.info("dates", dates);
   Promise.resolve(dates.map(async (value) => {
     // get data from firestore
     const data = new Map<string, any>();
