@@ -165,6 +165,35 @@ export async function updateProfile(firestore: firestore.Firestore, data: User, 
 }
 
 /**
+ * @param {firestore.Firestore} firestore
+ * @param {Object.<string, unknown>} data
+ * @param {CallableContext} context
+ */
+export async function logActivity(firestore: firestore.Firestore, data: {[key:string]: unknown}, context: CallableContext) {
+  const id = context.auth?.uid ? context.auth.uid : "";
+  await firestore.collection("user_logs").add({
+    userId: id,
+    ...data,
+  });
+}
+
+/**
+ * @param {firestore.Firestore} firestore
+ * @param {CallableContext} context
+ */
+export async function getUserLogs(firestore: firestore.Firestore, context: CallableContext) {
+  if (context.auth?.token.admin) {
+    const docsRef = await firestore.collection("user_logs").get();
+    const logs: firestore.DocumentData[] = [];
+    docsRef.forEach((doc) => {
+      logs.push(doc.data());
+    });
+    return logs;
+  }
+  throw new functions.https.HttpsError("permission-denied", "Admin only access!");
+}
+
+/**
  * @param {User} payload - User payload
  */
 function validateUserPayload(payload: User): void | never {

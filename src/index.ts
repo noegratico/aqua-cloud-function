@@ -10,6 +10,8 @@ import {
   User,
   ActivationAndDeactivationPayload,
   updateProfile,
+  logActivity,
+  getUserLogs,
 } from "./user-functions/account";
 import {getSensorRecentData, getSensorHistoricalData, SensorParameter, generateReports} from "./sensor-data-functions/sensor";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
@@ -64,6 +66,14 @@ const generateAllReports = myStorageFunction.runWith({
   return generateReports(firestore, storage);
 });
 
+const logUserActivity = myStorageFunction.https.onCall((data: {[key: string]: unknown}, context: CallableContext) => {
+  return logActivity(firestore, data, context);
+});
+
+const getAllUserLogs = myStorageFunction.https.onCall((_: unknown, context: CallableContext) => {
+  return getUserLogs(firestore, context);
+});
+
 export {
   beforeSignIn,
   signUp,
@@ -75,4 +85,6 @@ export {
   getSensorData,
   getAllSensorData,
   generateAllReports,
+  logUserActivity,
+  getAllUserLogs,
 };
