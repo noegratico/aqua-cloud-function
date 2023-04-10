@@ -109,22 +109,25 @@ async function generateDaily(firestore: firestore.Firestore, storage: storage.St
     }
     if (data.size !== 0) {
       // generate daily report
-      const folder = "daily-reports/";
-      const fileName = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
-      const fileRef = storage.bucket().file(folder + fileName + ".pdf");
-      const doc = new PDFDocument();
-      const writeStream = fileRef.createWriteStream({
-        resumable: false,
-        contentType: "application/pdf",
-      });
-      logger.info(`start generating report for ${fileName}`);
-      doc.pipe(writeStream);
       for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
+        const sensorData = data.has(sensor) ? data.get(sensor) : [];
+        if (sensorData.length === 0) {
+          continue;
+        }
+        const folder = `daily-reports/${sensor}/`;
+        const fileName = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
+        const fileRef = storage.bucket().file(folder + fileName + ".pdf");
+        const doc = new PDFDocument();
+        const writeStream = fileRef.createWriteStream({
+          resumable: false,
+          contentType: "application/pdf",
+        });
+        logger.info(`start generating report for ${fileName}`);
+        doc.pipe(writeStream);
         const name = startCase(sensor).replace("_", " ");
-        const value = data.has(sensor) ? data.get(sensor) : [];
-        await doc.table(createTabularReport(value, name, `Records of ${name} for the day of ${fileName}`));
+        await doc.table(createTabularReport(sensorData, name, `Records of ${name} for the day of ${fileName}`));
+        doc.end();
       }
-      doc.end();
     }
   })).then(() => {
     // update lastFileUploaded in daily collection
@@ -195,6 +198,7 @@ function getTommorrowDate(date: string): Date {
  */
 async function getSensorDataAsPerDate(firestore: firestore.Firestore, collectionName: string, date: Date) {
   return (await firestore.collection(collectionName)
+    .where("datetime", ">=", new Date(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`))
     .where("datetime", "<=", new Date(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 23:59:59`))
     .orderBy("datetime", "desc").get()).docs.map((value) => value.data() as SensorData);
 }
