@@ -13,7 +13,7 @@ import {
   logActivity,
   getUserLogs,
 } from "./user-functions/account";
-import {getSensorRecentData, getSensorHistoricalData, SensorParameter, generateReports} from "./sensor-data-functions/sensor";
+import {getSensorRecentData, getSensorHistoricalData, SensorParameter, generateReports, SchedulerParameter, updateScheduler} from "./sensor-data-functions/sensor";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 
@@ -74,6 +74,10 @@ const getAllUserLogs = myStorageFunction.https.onCall((_: unknown, context: Call
   return getUserLogs(firestore, context);
 });
 
+const scheduler = myStorageFunction.https.onCall((data: SchedulerParameter) => {
+  return updateScheduler(firestore, data);
+});
+
 export {
   beforeSignIn,
   signUp,
@@ -87,4 +91,5 @@ export {
   generateAllReports,
   logUserActivity,
   getAllUserLogs,
+  scheduler,
 };

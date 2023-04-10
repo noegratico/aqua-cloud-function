@@ -13,6 +13,11 @@ export interface SensorData {
   convertedDatetime?: string
 }
 
+export interface SchedulerParameter {
+  docName: string,
+  data: {[key: string]: any}
+}
+
 export type Table = any;
 
 interface ReportsFields {
@@ -192,6 +197,15 @@ async function getSensorDataAsPerDate(firestore: firestore.Firestore, collection
   return (await firestore.collection(collectionName)
     .where("datetime", "<=", new Date(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 23:59:59`))
     .orderBy("datetime", "desc").get()).docs.map((value) => value.data() as SensorData);
+}
+
+/**
+ * @param {firestore.Firestore} firestore
+ * @param {SchedulerParameter} data
+ * @return {SchedulerParameter}
+ */
+export function updateScheduler(firestore: firestore.Firestore, data: SchedulerParameter) {
+  return firestore.collection("scheduler").doc(data.docName).update({...data.data});
 }
 
 /**
