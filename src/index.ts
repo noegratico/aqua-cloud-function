@@ -70,8 +70,8 @@ const logUserActivity = myStorageFunction.https.onCall((data: {[key: string]: un
   return logActivity(firestore, data, context);
 });
 
-const getAllUserLogs = myStorageFunction.https.onCall((_: unknown, context: CallableContext) => {
-  return getUserLogs(firestore, context);
+const getAllUserLogs = myStorageFunction.https.onCall((data: {[key: string]: unknown}, context: CallableContext) => {
+  return getUserLogs(data, firestore, context);
 });
 
 const scheduler = myStorageFunction.https.onCall((data: SchedulerParameter) => {

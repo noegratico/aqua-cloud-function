@@ -180,12 +180,17 @@ export async function logActivity(firestore: firestore.Firestore, data: {[key:st
 }
 
 /**
+ *
+ * @param {{}} data
  * @param {firestore.Firestore} firestore
  * @param {CallableContext} context
+ * @return {firestore.DocumentData[]}
  */
-export async function getUserLogs(firestore: firestore.Firestore, context: CallableContext) {
+export async function getUserLogs(data: {[key: string]: unknown}, firestore: firestore.Firestore, context: CallableContext) {
   if (context.auth?.token.admin) {
-    const docsRef = await firestore.collection("user_logs").get();
+    const {keyword} = data;
+    const collectionRef = firestore.collection("user_logs");
+    const docsRef = await (keyword != null ? collectionRef.where("activity", ">=", keyword).where("activity", "<", keyword +"z") : collectionRef).get();
     const logs: firestore.DocumentData[] = [];
     docsRef.forEach((doc) => {
       logs.push(doc.data());
