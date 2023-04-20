@@ -6,7 +6,6 @@ import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 import * as functions from "firebase-functions";
 import lodash from "lodash";
-import { DocumentData } from "firebase-admin/firestore";
 
 export interface User {
   id?: string,
