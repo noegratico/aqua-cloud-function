@@ -186,18 +186,18 @@ export async function logActivity(firestore: firestore.Firestore, data: {[key:st
  * @param {CallableContext} context
  * @return {firestore.DocumentData[]}
  */
-export async function getUserLogs(data: {[key: string]: unknown}, firestore: firestore.Firestore, context: CallableContext) {
+export async function getUserLogs(data: {[key: string]: string}, firestore: firestore.Firestore, context: CallableContext) {
   if (context.auth?.token.admin) {
     const {keyword, date} = data != null ? data : {keyword: undefined, date: undefined};
     const docsRef = (await firestore.collection("user_logs").get());
-    const condition = (data: {[key: string]: unknown}, key: string, search: unknown) => {
+    const condition = (data: {[key: string]: string}, key: string, search: string | undefined) => {
       if (search != null) {
-        return data[key] == search;
+        return data[key].includes(search);
       }
       return true;
     };
     const filter = (element: firestore.QueryDocumentSnapshot<firestore.DocumentData>) => {
-      const data = element.data() as {[key: string]: unknown};
+      const data = element.data() as {[key: string]: string};
       return condition(data, "activity", keyword) && condition(data, "datetime", date);
     };
     return docsRef.docs.filter(filter).map((value) => value.data());
