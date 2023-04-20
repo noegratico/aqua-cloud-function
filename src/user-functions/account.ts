@@ -6,6 +6,7 @@ import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 import * as functions from "firebase-functions";
 import lodash from "lodash";
+import { DocumentData } from "firebase-admin/firestore";
 
 export interface User {
   id?: string,
@@ -188,14 +189,19 @@ export async function logActivity(firestore: firestore.Firestore, data: {[key:st
  */
 export async function getUserLogs(data: {[key: string]: unknown}, firestore: firestore.Firestore, context: CallableContext) {
   if (context.auth?.token.admin) {
-    const {keyword} = data;
-    const collectionRef = firestore.collection("user_logs");
-    const docsRef = await (keyword != null ? collectionRef.where("activity", ">=", keyword).where("activity", "<", keyword +"z") : collectionRef).get();
-    const logs: firestore.DocumentData[] = [];
-    docsRef.forEach((doc) => {
-      logs.push(doc.data());
-    });
-    return logs;
+    const {keyword, date} = data != null ? data : {keyword: undefined, date: undefined};
+    const docsRef = (await firestore.collection("user_logs").get());
+    const condition = (data: {[key: string]: unknown}, key: string, search: unknown) => {
+      if (search != null) {
+        return data[key] == search;
+      }
+      return true;
+    };
+    const filter = (element: firestore.QueryDocumentSnapshot<firestore.DocumentData>) => {
+      const data = element.data() as {[key: string]: unknown};
+      return condition(data, "activity", keyword) && condition(data, "datetime", date);
+    };
+    return docsRef.docs.filter(filter).map((value) => value.data());
   }
   throw new functions.https.HttpsError("permission-denied", "Admin only access!");
 }
