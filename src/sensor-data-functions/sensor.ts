@@ -27,6 +27,8 @@ interface ReportsFields {
 
 export interface SensorParameter {
   collectionName: string
+  pageIndex?: number,
+  limit?: number
 }
 
 /**
@@ -66,8 +68,14 @@ export async function getSensorRecentData(firestore: firestore.Firestore) {
  * @param {SensorParameter} data
  */
 export async function getSensorHistoricalData(firestore: firestore.Firestore, data: SensorParameter) {
+  const pageIndex = data.pageIndex ? data.pageIndex : 0;
+  const limit = data.limit ? data.limit : 10;
+  const ref = getSortedSensorData(firestore, data.collectionName);
+  const count = (await ref.count().get()).data().count;
+  const result = (await (await ref.startAfter((pageIndex * 10)).limit(limit)).get()).docs.map((element) => mapDataToSensorData(element.data()));
   return {
-    data: (await getSortedSensorData(firestore, data.collectionName).get()).docs.map((element) => mapDataToSensorData(element.data())),
+    data: result,
+    count,
   };
 }
 
