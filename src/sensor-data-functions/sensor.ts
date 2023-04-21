@@ -72,7 +72,7 @@ export async function getSensorHistoricalData(firestore: firestore.Firestore, da
   const limit = data.limit ? data.limit : 10;
   const ref = getSortedSensorData(firestore, data.collectionName);
   const count = (await ref.count().get()).data().count;
-  const result = (await (await ref.startAfter((pageIndex * 10)).limit(limit)).get()).docs.map((element) => mapDataToSensorData(element.data()));
+  const result = (await ref.startAfter((pageIndex * 10)).limit(limit).get()).docs.map((element) => mapDataToSensorData(element.data()));
   return {
     data: result,
     count,
