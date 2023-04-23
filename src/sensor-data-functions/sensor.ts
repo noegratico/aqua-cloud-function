@@ -87,7 +87,8 @@ export async function getSensorHistoricalData(firestore: firestore.Firestore, da
 export async function generateReports(firestore: firestore.Firestore, storage: storage.Storage) {
   // generate daily
   await generateDaily(firestore, storage);
-  // await generateAllSensorsReportDaily(firestore, storage);
+  const fileDate = await generateAllSensorsReportDaily(firestore, storage);
+  firestore.collection("reports").doc("daily").update({lastFileUploaded: `${fileDate.getFullYear()}-${fileDate.getMonth() + 1}-${fileDate.getDate()}`});
 }
 
 /**
@@ -140,66 +141,59 @@ async function generateDaily(firestore: firestore.Firestore, storage: storage.St
         doc.end();
       }
     }
-  })).then(() => {
-    // update lastFileUploaded in daily collection
-    const fileDate = dates[dates.length - 1];
-    firestore.collection("reports").doc("daily").update({lastFileUploaded: `${fileDate.getFullYear()}-${fileDate.getMonth() + 1}-${fileDate.getDate()}`});
-  });
+  }));
 }
 
 /**
  * @param {firestore.Firestore} firestore
  * @param {storage.Storage} storage
  */
-// async function generateAllSensorsReportDaily(firestore: firestore.Firestore, storage: storage.Storage) {
-//   logger.info("start report generation");
-//   const lastFileUploaded = ((await firestore.collection("reports").doc("daily").get()).data() as ReportsFields).lastFileUploaded;
-//   const startDate = (isEmpty(lastFileUploaded) ? getYesterdayDate() : getTommorrowDate(lastFileUploaded));
-//   const endDate = new Date();
-//   const dates: Date[] = [];
+async function generateAllSensorsReportDaily(firestore: firestore.Firestore, storage: storage.Storage) {
+  logger.info("start report generation");
+  const lastFileUploaded = ((await firestore.collection("reports").doc("daily").get()).data() as ReportsFields).lastFileUploaded;
+  const startDate = (isEmpty(lastFileUploaded) ? getYesterdayDate() : getTommorrowDate(lastFileUploaded));
+  const endDate = new Date();
+  const dates: Date[] = [];
 
-//   while (startDate <= endDate) {
-//     dates.push(new Date(startDate));
-//     startDate.setDate(startDate.getDate() + 1);
-//   }
-//   logger.info("dates", dates);
-//   await Promise.allSettled(dates.map(async (value) => {
-//     // get data from firestore
-//     const data = new Map<string, any>();
-//     for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
-//       const result = (await getSensorDataAsPerDate(firestore, sensor, value)).map((res) => ({
-//         ...res,
-//         convertedDatetime: toDateTime(res.datetime["_seconds"]),
-//       }));
-//       if (result.length !== 0) {
-//         data.set(sensor, result);
-//       }
-//     }
-//     if (data.size !== 0) {
-//       // generate daily report
-//       const folder = "daily-reports/";
-//       const fileName = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
-//       const fileRef = storage.bucket().file(folder + fileName + ".pdf");
-//       const doc = new PDFDocument();
-//       const writeStream = fileRef.createWriteStream({
-//         resumable: false,
-//         contentType: "application/pdf",
-//       });
-//       logger.info(`start generating report for ${fileName}`);
-//       doc.pipe(writeStream);
-//       for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
-//         const name = startCase(sensor).replace("_", " ");
-//         const value = data.has(sensor) ? data.get(sensor) : [];
-//         await doc.table(createTabularReport(value, name, `Records of ${name} for the day of ${fileName}`));
-//       }
-//       doc.end();
-//     }
-//   })).then(() => {
-//     // update lastFileUploaded in daily collection
-//     const fileDate = dates[dates.length - 1];
-//     firestore.collection("reports").doc("daily").update({lastFileUploaded: `${fileDate.getFullYear()}-${fileDate.getMonth() + 1}-${fileDate.getDate()}`});
-//   });
-// }
+  while (startDate <= endDate) {
+    dates.push(new Date(startDate));
+    startDate.setDate(startDate.getDate() + 1);
+  }
+  logger.info("dates", dates);
+  await Promise.allSettled(dates.map(async (value) => {
+    // get data from firestore
+    const data = new Map<string, any>();
+    for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
+      const result = (await getSensorDataAsPerDate(firestore, sensor, value)).map((res) => ({
+        ...res,
+        convertedDatetime: toDateTime(res.datetime["_seconds"]),
+      }));
+      if (result.length !== 0) {
+        data.set(sensor, result);
+      }
+    }
+    if (data.size !== 0) {
+      // generate daily report
+      const folder = "daily-reports/";
+      const fileName = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
+      const fileRef = storage.bucket().file(folder + fileName + ".pdf");
+      const doc = new PDFDocument();
+      const writeStream = fileRef.createWriteStream({
+        resumable: false,
+        contentType: "application/pdf",
+      });
+      logger.info(`start generating report for ${fileName}`);
+      doc.pipe(writeStream);
+      for (const sensor of ["temperature", "ec_level", "humidity", "light_resistance", "ph_level", "water_level", "snap_a", "snap_b"]) {
+        const name = startCase(sensor).replace("_", " ");
+        const value = data.has(sensor) ? data.get(sensor) : [];
+        await doc.table(createTabularReport(value, name, `Records of ${name} for the day of ${fileName}`));
+      }
+      doc.end();
+    }
+  }));
+  return dates[dates.length - 1];
+}
 
 /**
  * @param {firestore.Firestore} firestore
