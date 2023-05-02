@@ -4,7 +4,7 @@
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc && cp -r src/resources lib/",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --import 2023-05-02T04:54:12_97792",
+    "serve": "npm run build && firebase emulators:start --import 2023-05-02T19:44:34_91072",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",

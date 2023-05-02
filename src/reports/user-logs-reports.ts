@@ -56,7 +56,7 @@ export async function generateUserLogsReports(firestore: firestore.Firestore, st
     }, {x: 72, y: 164});
     doc.end();
   }
-  const fileDate = data[data.length - 1].date;
+  const fileDate = dates[dates.length - 1];
   firestore.collection("reports").doc("user-logs").update({lastFileUploaded: `${fileDate.getFullYear()}-${fileDate.getMonth() + 1}-${fileDate.getDate()}`});
 }
 
@@ -67,23 +67,8 @@ export async function generateUserLogsReports(firestore: firestore.Firestore, st
  */
 async function getUserLogsAsPerDate(firestore: firestore.Firestore, date: Date) {
   const result = (await firestore.collection("user_logs")
+    .where("timestamp", ">=", new Date(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`))
+    .where("timestamp", "<=", new Date(`${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 23:59:59`))
     .orderBy("timestamp", "desc").get()).docs.map((value) => value.data() as UserLogs);
-  const toStringDate = (date: Date) => `${date.getFullYear()}-${prependZero(date.getMonth() + 1)}-${prependZero(date.getDate())}`;
-  const stringDate = toStringDate(date);
-  const data = result.filter((value) => {
-    const dateValue = value.datetime.split(" ")[0];
-    return dateValue === stringDate;
-  });
-  return {date, data};
-}
-
-/**
- * @param {number} num
- * @return {string}
- */
-function prependZero(num: number) {
-  if (num < 10) {
-    return `0${num}`;
-  }
-  return `${num}`;
+  return {date, data: result};
 }
