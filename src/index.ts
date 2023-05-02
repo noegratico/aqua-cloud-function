@@ -16,6 +16,8 @@ import {
 import {getSensorRecentData, getSensorHistoricalData, SensorParameter, generateReports, SchedulerParameter, updateScheduler} from "./sensor-data-functions/sensor";
 import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
+import {generateReportsV2} from "./reports/sensor-reports";
+import {generateUserLogsReports} from "./reports/user-logs-reports";
 
 admin.initializeApp();
 
@@ -78,6 +80,18 @@ const scheduler = myStorageFunction.https.onCall((data: SchedulerParameter) => {
   return updateScheduler(firestore, data);
 });
 
+const generateAllReportsV2 = myStorageFunction.runWith({
+  timeoutSeconds: 300,
+}).https.onCall(() => {
+  return generateReportsV2(firestore, storage);
+});
+
+const userLogsReportsGeneration = myStorageFunction.runWith({
+  timeoutSeconds: 300,
+}).https.onCall(() => {
+  return generateUserLogsReports(firestore, storage);
+});
+
 export {
   beforeSignIn,
   signUp,
@@ -92,4 +106,6 @@ export {
   logUserActivity,
   getAllUserLogs,
   scheduler,
+  generateAllReportsV2,
+  userLogsReportsGeneration,
 };
