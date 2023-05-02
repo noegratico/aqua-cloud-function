@@ -191,7 +191,7 @@ export async function logActivity(firestore: firestore.Firestore, data: {[key:st
 export async function getUserLogs(data: {[key: string]: string}, firestore: firestore.Firestore, context: CallableContext) {
   if (context.auth?.token.admin) {
     const {keyword, date} = data != null ? data : {keyword: undefined, date: undefined};
-    const docsRef = (await firestore.collection("user_logs").orderBy("timestamp").get());
+    const docsRef = (await firestore.collection("user_logs").orderBy("timestamp", "desc").get());
     const condition = (data: {[key: string]: string}, key: string, search: string | undefined) => {
       if (search != null) {
         return data[key].includes(search);
