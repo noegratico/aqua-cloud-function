@@ -2,7 +2,7 @@
   "functions": [
     {
       "source": ".",
-      "codebase": "aqua-functions",
+      "codebase": "aqua-monitoring-functions",
       "ignore": [
         "node_modules",
         ".git",
