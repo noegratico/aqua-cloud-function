@@ -6,6 +6,7 @@ import {AuthUserRecord} from "firebase-functions/lib/common/providers/identity";
 import {CallableContext} from "firebase-functions/v1/https";
 import * as functions from "firebase-functions";
 import lodash from "lodash";
+import * as admin from "firebase-admin";
 
 export interface User {
   id?: string,
@@ -176,6 +177,7 @@ export async function logActivity(firestore: firestore.Firestore, data: {[key:st
     userId,
     email,
     ...data,
+    timestamp: admin.firestore.Timestamp.fromDate(new Date(data["datetime"] as string)),
   });
 }
 
@@ -189,7 +191,7 @@ export async function logActivity(firestore: firestore.Firestore, data: {[key:st
 export async function getUserLogs(data: {[key: string]: string}, firestore: firestore.Firestore, context: CallableContext) {
   if (context.auth?.token.admin) {
     const {keyword, date} = data != null ? data : {keyword: undefined, date: undefined};
-    const docsRef = (await firestore.collection("user_logs").get());
+    const docsRef = (await firestore.collection("user_logs").orderBy("timestamp", "desc").get());
     const condition = (data: {[key: string]: string}, key: string, search: string | undefined) => {
       if (search != null) {
         return data[key].includes(search);
